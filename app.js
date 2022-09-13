@@ -9,12 +9,44 @@ require('./db');
 // https://www.npmjs.com/package/express
 const express = require('express');
 
+const mongoose = require('mongoose');
+
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+
+
+//body parser
+
+const bodyParser = require('body-parser');
 // Handles the handlebars
 // https://www.npmjs.com/package/hbs
 const hbs = require('hbs');
 
+
+
 const app = express();
 
+
+app.use(
+    session({
+      secret: 'barcelonaChampions',
+      resave: true,
+      saveUninitialized: false,
+      cookie: {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 60000 // 60 * 1000 ms === 1 min
+      },
+      store: MongoStore.create({
+        mongoUrl: 'mongodb://localhost/authExample'
+      })
+    })
+  );
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.set("views", __dirname + "/views");
+app.set("view engine", hbs);
 // ℹ️ This function is getting exported from the config folder. It runs most middlewares
 require('./config')(app);
 
